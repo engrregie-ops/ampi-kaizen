@@ -1,0 +1,45 @@
+(() => {
+  const $ = id => document.getElementById(id);
+  const fields = ['ideaNo','ideaDate','personName','department','workArea','currentProcess','improvement','benefits'];
+  const categories = ['Process Improvement','Cost Savings','Quality','Poka-Yoke','Safety','5S'];
+  const muda = ['Over-processing','Over-production','Inventory','Motion','Defects','Waiting','Transportation'];
+  const STORE = 'ampi_kaizen_records_v1';
+  let photos = [];
+  let editingId = null;
+  let toastTimer;
+  const today = () => new Date().toISOString().slice(0,10);
+  const records = () => { try { return JSON.parse(localStorage.getItem(STORE) || '[]'); } catch { return []; } };
+  const writeRecords = data => localStorage.setItem(STORE, JSON.stringify(data));
+  const nextNumber = () => {
+    const nums = records().map(r => Number(String(r.ideaNo || '').match(/(\d+)$/)?.[1] || 0));
+    return `KZN-${String(Math.max(0,...nums)+1).padStart(4,'0')}`;
+  };
+  function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2600)}
+  function selected(name){return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(x=>x.value)}
+  function setChecks(name,values=[]){document.querySelectorAll(`input[name="${name}"]`).forEach(x=>x.checked=values.includes(x.value))}
+  function getData(){const data={};fields.forEach(id=>data[id]=$(id).value);data.category=selected('category');data.muda=selected('muda');data.photos=photos;return data}
+  function setData(data){fields.forEach(id=>$(id).value=data[id]||'');setChecks('category',data.category);setChecks('muda',data.muda);photos=Array.isArray(data.photos)?data.photos:[];renderPhotos();syncPreview()}
+  function syncPreview(){
+    fields.forEach(id=>{const target=document.querySelector(`[data-out="${id}"]`);if(target){let value=$(id).value||'';if(id==='ideaDate'&&value){const [y,m,d]=value.split('-');value=`${m}/${d}/${y}`}target.textContent=value;}});
+    $('outCategories').innerHTML=categories.map(v=>checkMarkup(v,selected('category').includes(v))).join('');
+    $('outMuda').innerHTML=muda.map(v=>checkMarkup(v,selected('muda').includes(v))).join('');
+    $('paperPhotoGrid').innerHTML=photos.map(p=>`<img src="${p.data}" alt="${escapeHtml(p.name)}" title="${escapeHtml(p.name)}">`).join('');
+    $('paperAttachments').style.display=photos.length?'block':'none';
+  }
+  function checkMarkup(value,checked){return `<span class="paper-check ${checked?'checked':''}"><i></i>${escapeHtml(value)}</span>`}
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function renderPhotos(){ $('photoCount').textContent=photos.length; $('photoList').innerHTML=photos.length?photos.map((p,i)=>`<div class="photo-item"><img src="${p.data}" alt=""><div><strong>${escapeHtml(p.name)}</strong><small>${(p.size/1024).toFixed(0)} KB</small></div><button class="remove-photo" data-remove="${i}" aria-label="Remove photo">✕</button></div>`).join(''):'<div class="empty-photos">No photos attached yet.</div>';syncPreview(); }
+  function resetForm(){ $('kaizenForm').reset();photos=[];editingId=null;$('ideaNo').value=nextNumber();$('ideaDate').value=today();renderPhotos();syncPreview();$('previewSection').classList.remove('visible');$('saveBtn').textContent='Save record'; }
+  function save(){const data=getData();if(!data.personName.trim()){ $('personName').focus();toast('Please enter the employee name.');return; }if(!data.ideaDate){$('ideaDate').focus();toast('Please select the date.');return;}const all=records();if(editingId){const index=all.findIndex(r=>r.id===editingId);if(index>=0)all[index]={...all[index],...data,updatedAt:new Date().toISOString()};else all.push({...data,id:editingId,createdAt:new Date().toISOString()});}else{data.id=crypto.randomUUID?crypto.randomUUID():String(Date.now());data.createdAt=new Date().toISOString();all.push(data);editingId=data.id;}try{writeRecords(all);$('ideaNo').value=data.ideaNo;toast(`Record ${data.ideaNo} saved on this device.`);renderRecords();}catch(e){toast('Storage is full. Remove large photos or export/back up records.');}}
+  function renderRecords(){const all=records().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));$('recordsList').innerHTML=all.length?all.map(r=>`<div class="record-row"><div><strong>${escapeHtml(r.ideaNo||'Untitled')}</strong><small>${escapeHtml(r.personName||'')} · ${escapeHtml(r.ideaDate||'')} · ${(r.photos||[]).length} photo(s)</small></div><div class="record-actions"><button data-load="${r.id}">Open</button><button data-delete="${r.id}">Delete</button></div></div>`).join(''):'<p class="empty-photos">No saved records on this device yet.</p>';}
+  function loadRecord(id){const r=records().find(x=>x.id===id);if(!r)return;setData(r);editingId=r.id;$('recordsDialog').close();$('previewSection').classList.remove('visible');$('saveBtn').textContent='Update record';toast(`${r.ideaNo} loaded.`);window.scrollTo({top:0,behavior:'smooth'});}
+  async function addFiles(fileList){const files=[...fileList].filter(f=>f.type.startsWith('image/'));for(const file of files){if(photos.length>=12){toast('Maximum of 12 photos per record.');break;}if(file.size>8*1024*1024){toast(`${file.name} is over 8 MB and was skipped.`);continue;}const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file)});photos.push({name:file.name,size:file.size,data});}renderPhotos();toast(files.length?'Photo attachment(s) added.':'No supported image selected.');}
+  async function exportPNG(){syncPreview();const node=$('printArea');try{if(document.fonts?.ready)await document.fonts.ready;const clone=node.cloneNode(true);clone.style.transform='none';clone.style.margin='0';const serialized=new XMLSerializer().serializeToString(clone);const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1748" height="2480" viewBox="0 0 559.37 793.70"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml"><style>${[...document.styleSheets].map(s=>{try{return [...s.cssRules].map(r=>r.cssText).join('')}catch{return ''}}).join('')}</style>${serialized}</div></foreignObject></svg>`;const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'});const url=URL.createObjectURL(blob);const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas');canvas.width=1748;canvas.height=2480;const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);URL.revokeObjectURL(url);canvas.toBlob(b=>{if(!b){toast('PNG export failed. Try Print A5 instead.');return;}const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`${$('ideaNo').value||'KAIZEN'}-form.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);toast('High-resolution PNG exported.');},'image/png');};img.onerror=()=>{URL.revokeObjectURL(url);toast('PNG export could not render this browser content. Use Print A5.');};img.src=url;}catch(e){toast('PNG export failed in this browser. Use Print A5.');}}
+  $('kaizenForm').addEventListener('input',syncPreview);$('kaizenForm').addEventListener('change',syncPreview);
+  $('saveBtn').addEventListener('click',save);$('saveBottomBtn').addEventListener('click',save);$('newBtn').addEventListener('click',()=>{resetForm();window.scrollTo({top:0,behavior:'smooth'});});$('clearBtn').addEventListener('click',()=>{if(confirm('Clear all entered fields and remove attached photos? Unsaved changes will be lost.'))resetForm();});
+  $('previewBtn').addEventListener('click',()=>{$('previewSection').classList.add('visible');syncPreview();$('previewSection').scrollIntoView({behavior:'smooth'});});$('hidePreviewBtn').addEventListener('click',()=>$('previewSection').classList.remove('visible'));$('printBtn').addEventListener('click',()=>{syncPreview();$('previewSection').classList.add('visible');window.print();});$('pngBtn').addEventListener('click',exportPNG);
+  $('galleryInput').addEventListener('change',e=>{addFiles(e.target.files);e.target.value=''});$('cameraInput').addEventListener('change',e=>{addFiles(e.target.files);e.target.value=''});
+  $('photoList').addEventListener('click',e=>{const b=e.target.closest('[data-remove]');if(b){photos.splice(Number(b.dataset.remove),1);renderPhotos();}});
+  $('loadBtn').addEventListener('click',()=>{renderRecords();$('recordsDialog').showModal();});$('closeDialog').addEventListener('click',()=>$('recordsDialog').close());$('recordsList').addEventListener('click',e=>{const load=e.target.closest('[data-load]');const del=e.target.closest('[data-delete]');if(load)loadRecord(load.dataset.load);if(del&&confirm('Permanently delete this saved record and its photos?')){writeRecords(records().filter(r=>r.id!==del.dataset.delete));renderRecords();toast('Record deleted.');}});
+  resetForm();syncPreview();
+})();

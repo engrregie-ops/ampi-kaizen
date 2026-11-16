@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10243b"><title>AMPI Engineering | KAIZEN Form</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">A</div><div><strong>AMPI ENGINEERING</strong><small>CONTINUOUS IMPROVEMENT • KAIZEN</small></div></div>
+    <div class="top-actions"><span class="local-pill"><i></i> Saved locally on this device</span><button class="btn btn-ghost" id="newBtn">＋ New form</button></div>
+  </header>
+  <main class="workspace">
+    <section class="intro"><div><div class="eyebrow">ENGINEERING • IMPROVEMENT SYSTEM</div><h1>KAIZEN Project Creation</h1><p>Capture an improvement idea, document its benefits, and prepare it for tier approval.</p></div><div class="intro-tag">A5 · PORTRAIT</div></section>
+    <section class="toolbar" aria-label="Form actions">
+      <div class="toolbar-left"><button class="btn btn-primary" id="saveBtn">Save record</button><button class="btn btn-outline" id="previewBtn">Preview form</button><button class="btn btn-outline" id="printBtn">Print A5</button><button class="btn btn-outline" id="pngBtn">Export PNG</button></div>
+      <div class="toolbar-right"><button class="btn btn-soft" id="loadBtn">Load saved</button><button class="btn btn-danger" id="clearBtn">Clear form</button></div>
+    </section>
+    <div class="content-grid">
+      <section class="editor-panel">
+        <div class="panel-heading"><div><h2>Form details</h2><p>Complete the fields below. Required fields are marked.</p></div><span class="step-label">01 / ENTRY</span></div>
+        <form id="kaizenForm" autocomplete="off">
+          <div class="field-grid">
+            <label>Idea No.<input id="ideaNo" name="ideaNo" readonly></label>
+            <label>Date<input id="ideaDate" name="ideaDate" type="date" required></label>
+            <label class="span-2">Name <em>*</em><input id="personName" name="personName" placeholder="Employee full name" required></label>
+            <label>Department<input id="department" name="department" placeholder="e.g. Engineering"></label>
+            <label>Work Area<input id="workArea" name="workArea" placeholder="e.g. SVP / Utilities"></label>
+          </div>
+          <label class="block-field">Current Process / System<textarea id="currentProcess" rows="4" placeholder="Describe the current process or condition..."></textarea></label>
+          <label class="block-field">Suggested Improvement<textarea id="improvement" rows="4" placeholder="Describe the proposed improvement..."></textarea></label>
+          <label class="block-field">Benefits / Cost Savings<textarea id="benefits" rows="4" placeholder="Describe expected benefits, quality, productivity, safety, or cost savings..."></textarea></label>
+          <fieldset><legend>Category <small>Select all that apply</small></legend><div class="check-grid" id="categoryChecks">
+            <label><input type="checkbox" name="category" value="Process Improvement">Process Improvement</label><label><input type="checkbox" name="category" value="Cost Savings">Cost Savings</label><label><input type="checkbox" name="category" value="Quality">Quality</label><label><input type="checkbox" name="category" value="Poka-Yoke">Poka-Yoke</label><label><input type="checkbox" name="category" value="Safety">Safety</label><label><input type="checkbox" name="category" value="5S">5S</label>
+          </div></fieldset>
+          <fieldset><legend>7 MUDA <small>Select all that apply</small></legend><div class="check-grid muda-grid" id="mudaChecks">
+            <label><input type="checkbox" name="muda" value="Over-processing">Over-processing</label><label><input type="checkbox" name="muda" value="Over-production">Over-production</label><label><input type="checkbox" name="muda" value="Inventory">Inventory</label><label><input type="checkbox" name="muda" value="Motion">Motion</label><label><input type="checkbox" name="muda" value="Defects">Defects</label><label><input type="checkbox" name="muda" value="Waiting">Waiting</label><label><input type="checkbox" name="muda" value="Transportation">Transportation</label>
+          </div></fieldset>
+          <div class="approval-note"><strong>Tier approval</strong><span>Approval and signature/date areas are intentionally left blank for manual completion.</span></div>
+          <div class="editor-footer"><span>Fields and photos are stored in this browser only.</span><button class="btn btn-primary" type="button" id="saveBottomBtn">Save KAIZEN record</button></div>
+        </form>
+      </section>
+      <aside class="side-panel">
+        <div class="panel-heading"><div><h2>Photo attachments</h2><p>Evidence and before/after photos</p></div><span class="count" id="photoCount">0</span></div>
+        <div class="upload-box"><div class="upload-icon">＋</div><strong>Add project photos</strong><p>Choose images from your gallery or take a photo using your device camera.</p><div class="upload-actions"><label class="btn btn-primary upload-btn">Choose images<input id="galleryInput" type="file" accept="image/*" multiple></label><label class="btn btn-outline upload-btn">Use camera<input id="cameraInput" type="file" accept="image/*" capture="environment" multiple></label></div></div>
+        <div id="photoList" class="photo-list"><div class="empty-photos">No photos attached yet.</div></div>
+        <div class="tip-card"><strong>Photo tip</strong><p>Attach clear before-and-after images, equipment details, or other visual evidence. Photos are saved with this record and displayed below the A5 form.</p></div>
+        <div class="storage-card"><div class="storage-icon">▣</div><div><strong>Local device storage</strong><p>Records stay in this browser. They are not automatically shared or backed up to another device.</p></div></div>
+      </aside>
+    </div>
+    <section class="preview-section" id="previewSection"><div class="preview-heading"><div><div class="eyebrow">DOCUMENT PREVIEW</div><h2>Printable KAIZEN Form</h2><p>Actual A5 portrait layout. Photos are shown below the form and are not part of the A5 page.</p></div><button class="btn btn-outline" id="hidePreviewBtn">Hide preview</button></div>
+      <div class="paper-wrap"><article id="printArea" class="paper">
+        <div class="paper-logos"><img src="assets/kaizen-logo.png" alt="KAIZEN logo"><img src="assets/ampi-engineering-logo.jpg" alt="AMPI Engineering logo"></div>
+        <div class="paper-head"><strong>KAIZEN FORM</strong><div><div>Idea No.: <b data-out="ideaNo"></b></div><div>Date: <b data-out="ideaDate"></b></div></div></div>
+        <div class="paper-employee"><div>Name: <span data-out="personName"></span></div><div>Department: <span data-out="department"></span></div><div>Work Area: <span data-out="workArea"></span></div></div>
+        <div class="paper-section"><h3>Current Process/System:</h3><div class="paper-writing" data-out="currentProcess"></div></div>
+        <div class="paper-section"><h3>Suggested Improvement:</h3><div class="paper-writing" data-out="improvement"></div></div>
+        <div class="paper-section"><h3>Benefits/Cost Savings:</h3><div class="paper-writing" data-out="benefits"></div></div>
+        <div class="paper-check-section"><h3>Category:</h3><div class="paper-checks" id="outCategories"></div></div>
+        <div class="paper-check-section"><h3>7 MUDA:</h3><div class="paper-checks" id="outMuda"></div></div>
+        <div class="tier-title">TIER APPROVAL</div><div class="tiers">
+          <div class="tier"><strong>TIER I</strong><div class="approved"><i></i> Approved</div><div class="signline">Signature/Date</div></div>
+          <div class="tier"><strong>TIER II</strong><div class="approved"><i></i> Approved</div><div class="signline">Signature/Date</div></div>
+          <div class="tier"><strong>TIER III</strong><div class="approved"><i></i> Approved</div><div class="signline">Signature/Date</div></div>
+        </div>
+      </article>
+      <div class="paper-attachments" id="paperAttachments"><strong>Photo attachments</strong><div class="paper-photo-grid" id="paperPhotoGrid"></div></div></div>
+    </section>
+    <footer>AMPI ENGINEERING <span>KAIZEN · CONTINUOUS IMPROVEMENT</span></footer>
+  </main>
+  <dialog id="recordsDialog" class="records-dialog"><div class="dialog-head"><div><div class="eyebrow">LOCAL RECORDS</div><h2>Saved KAIZEN records</h2></div><button class="icon-btn" id="closeDialog">✕</button></div><div id="recordsList"></div><p class="dialog-footnote">Saved records are available only in this browser on this device.</p></dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="app.js"></script>
+</body></html>
