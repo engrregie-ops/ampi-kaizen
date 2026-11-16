@@ -8,13 +8,14 @@
 <body>
   <header class="topbar">
     <div class="brand"><div class="brand-mark">A</div><div><strong>AMPI ENGINEERING</strong><small>CONTINUOUS IMPROVEMENT • KAIZEN</small></div></div>
-    <div class="top-actions"><span class="local-pill"><i></i> Saved locally on this device</span><button class="btn btn-ghost" id="newBtn">＋ New form</button></div>
+    <div class="top-actions"><span class="local-pill" id="connectionStatus"><i></i> Checking connection…</span><span class="user-label" id="userLabel"></span><button class="btn btn-ghost" id="authBtn">Sign in with Google</button><button class="btn btn-ghost" id="signOutBtn" hidden>Sign out</button><button class="btn btn-ghost" id="newBtn">＋ New form</button></div>
   </header>
   <main class="workspace">
     <section class="intro"><div><div class="eyebrow">ENGINEERING • IMPROVEMENT SYSTEM</div><h1>KAIZEN Project Creation</h1><p>Capture an improvement idea, document its benefits, and prepare it for tier approval.</p></div><div class="intro-tag">A5 · PORTRAIT</div></section>
+    <div class="notice" id="setupNotice" hidden>Supabase is not configured yet. Add your Project URL and Publishable key in <strong>config.js</strong>, then reload this page.</div>
     <section class="toolbar" aria-label="Form actions">
       <div class="toolbar-left"><button class="btn btn-primary" id="saveBtn">Save record</button><button class="btn btn-outline" id="previewBtn">Preview form</button><button class="btn btn-outline" id="printBtn">Print A5</button><button class="btn btn-outline" id="pngBtn">Export PNG</button></div>
-      <div class="toolbar-right"><button class="btn btn-soft" id="loadBtn">Load saved</button><button class="btn btn-danger" id="clearBtn">Clear form</button></div>
+      <div class="toolbar-right"><button class="btn btn-soft" id="loadBtn">Load shared records</button><button class="btn btn-danger" id="clearBtn">Clear form</button></div>
     </section>
     <div class="content-grid">
       <section class="editor-panel">
@@ -37,15 +38,15 @@
             <label><input type="checkbox" name="muda" value="Over-processing">Over-processing</label><label><input type="checkbox" name="muda" value="Over-production">Over-production</label><label><input type="checkbox" name="muda" value="Inventory">Inventory</label><label><input type="checkbox" name="muda" value="Motion">Motion</label><label><input type="checkbox" name="muda" value="Defects">Defects</label><label><input type="checkbox" name="muda" value="Waiting">Waiting</label><label><input type="checkbox" name="muda" value="Transportation">Transportation</label>
           </div></fieldset>
           <div class="approval-note"><strong>Tier approval</strong><span>Approval and signature/date areas are intentionally left blank for manual completion.</span></div>
-          <div class="editor-footer"><span>Fields and photos are stored in this browser only.</span><button class="btn btn-primary" type="button" id="saveBottomBtn">Save KAIZEN record</button></div>
+          <div class="editor-footer"><span>Records are stored centrally in Supabase when signed in.</span><button class="btn btn-primary" type="button" id="saveBottomBtn">Save KAIZEN record</button></div>
         </form>
       </section>
       <aside class="side-panel">
         <div class="panel-heading"><div><h2>Photo attachments</h2><p>Evidence and before/after photos</p></div><span class="count" id="photoCount">0</span></div>
         <div class="upload-box"><div class="upload-icon">＋</div><strong>Add project photos</strong><p>Choose images from your gallery or take a photo using your device camera.</p><div class="upload-actions"><label class="btn btn-primary upload-btn">Choose images<input id="galleryInput" type="file" accept="image/*" multiple></label><label class="btn btn-outline upload-btn">Use camera<input id="cameraInput" type="file" accept="image/*" capture="environment" multiple></label></div></div>
         <div id="photoList" class="photo-list"><div class="empty-photos">No photos attached yet.</div></div>
-        <div class="tip-card"><strong>Photo tip</strong><p>Attach clear before-and-after images, equipment details, or other visual evidence. Photos are saved with this record and displayed below the A5 form.</p></div>
-        <div class="storage-card"><div class="storage-icon">▣</div><div><strong>Local device storage</strong><p>Records stay in this browser. They are not automatically shared or backed up to another device.</p></div></div>
+        <div class="tip-card"><strong>Photo tip</strong><p>Attach clear before-and-after images, equipment details, or other visual evidence. Photos are uploaded to the shared KAIZEN photo bucket when the record is saved.</p></div>
+        <div class="storage-card"><div class="storage-icon">▣</div><div><strong>Shared cloud storage</strong><p>Signed-in users can access shared records according to the database access policies.</p></div></div>
       </aside>
     </div>
     <section class="preview-section" id="previewSection"><div class="preview-heading"><div><div class="eyebrow">DOCUMENT PREVIEW</div><h2>Printable KAIZEN Form</h2><p>Actual A5 portrait layout. Photos are shown below the form and are not part of the A5 page.</p></div><button class="btn btn-outline" id="hidePreviewBtn">Hide preview</button></div>
@@ -58,17 +59,14 @@
         <div class="paper-section"><h3>Benefits/Cost Savings:</h3><div class="paper-writing" data-out="benefits"></div></div>
         <div class="paper-check-section"><h3>Category:</h3><div class="paper-checks" id="outCategories"></div></div>
         <div class="paper-check-section"><h3>7 MUDA:</h3><div class="paper-checks" id="outMuda"></div></div>
-        <div class="tier-title">TIER APPROVAL</div><div class="tiers">
-          <div class="tier"><strong>TIER I</strong><div class="approved"><i></i> Approved</div><div class="signline">Signature/Date</div></div>
-          <div class="tier"><strong>TIER II</strong><div class="approved"><i></i> Approved</div><div class="signline">Signature/Date</div></div>
-          <div class="tier"><strong>TIER III</strong><div class="approved"><i></i> Approved</div><div class="signline">Signature/Date</div></div>
-        </div>
-      </article>
-      <div class="paper-attachments" id="paperAttachments"><strong>Photo attachments</strong><div class="paper-photo-grid" id="paperPhotoGrid"></div></div></div>
+        <div class="tier-title">TIER APPROVAL</div><div class="tiers"><div class="tier"><strong>TIER I</strong><div class="approved"><i></i> Approved</div><div class="signline">Signature/Date</div></div><div class="tier"><strong>TIER II</strong><div class="approved"><i></i> Approved</div><div class="signline">Signature/Date</div></div><div class="tier"><strong>TIER III</strong><div class="approved"><i></i> Approved</div><div class="signline">Signature/Date</div></div></div>
+      </article><div class="paper-attachments" id="paperAttachments"><strong>Photo attachments</strong><div class="paper-photo-grid" id="paperPhotoGrid"></div></div></div>
     </section>
     <footer>AMPI ENGINEERING <span>KAIZEN · CONTINUOUS IMPROVEMENT</span></footer>
   </main>
-  <dialog id="recordsDialog" class="records-dialog"><div class="dialog-head"><div><div class="eyebrow">LOCAL RECORDS</div><h2>Saved KAIZEN records</h2></div><button class="icon-btn" id="closeDialog">✕</button></div><div id="recordsList"></div><p class="dialog-footnote">Saved records are available only in this browser on this device.</p></dialog>
+  <dialog id="recordsDialog" class="records-dialog"><div class="dialog-head"><div><div class="eyebrow">SUPABASE CLOUD RECORDS</div><h2>Shared KAIZEN records</h2></div><button class="icon-btn" id="closeDialog">✕</button></div><div id="recordsList"></div><p class="dialog-footnote">Records are retrieved from your Supabase project.</p></dialog>
   <div id="toast" class="toast" role="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body></html>
